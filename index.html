@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hansel Research Tools</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui;background:#0A0A0F;color:#F0F0FF;padding:24px;min-height:100vh}
+h1{font-size:20px;font-weight:700;margin-bottom:6px}
+p{font-size:12px;color:#5A5A7A;margin-bottom:24px;font-family:monospace}
+.row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+input,select{background:#111118;border:1px solid #2A2A3A;border-radius:8px;padding:10px 14px;font-size:14px;color:#F0F0FF;outline:none}
+input{width:180px}
+select{cursor:pointer}
+button{background:#7B6EF6;color:white;border:none;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer}
+button:hover{background:#6A5DE8}
+button:disabled{background:#2A2A3A;cursor:not-allowed}
+.result{background:#111118;border:1px solid #2A2A3A;border-radius:12px;padding:20px;min-height:200px;margin-top:8px}
+.verdict{border-radius:8px;padding:12px 16px;margin-bottom:16px;font-weight:600;font-size:14px}
+.buy{background:rgba(46,204,113,.1);border-left:3px solid #2ECC71;color:#2ECC71}
+.watch{background:rgba(243,156,18,.1);border-left:3px solid #F39C12;color:#F39C12}
+.hold{background:rgba(123,110,246,.1);border-left:3px solid #7B6EF6;color:#7B6EF6}
+.avoid{background:rgba(231,76,60,.1);border-left:3px solid #E74C3C;color:#E74C3C}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.section{background:#1A1A24;border-radius:8px;padding:12px}
+.section-title{font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.1em;color:#5A5A7A;margin-bottom:6px}
+.section-body{font-size:13px;color:#9090B0;line-height:1.6;font-family:monospace}
+.rating-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2A2A3A;font-size:12px;font-family:monospace}
+.rating-row:last-child{border-bottom:none}
+.pos{color:#2ECC71}.neg{color:#E74C3C}.amb{color:#F39C12}.neu{color:#7B6EF6}
+.loading{display:flex;align-items:center;justify-content:center;height:150px;color:#5A5A7A;font-family:monospace;font-size:13px}
+.spinner{width:20px;height:20px;border:2px solid #2A2A3A;border-top-color:#7B6EF6;border-radius:50%;animation:spin .8s linear infinite;margin-right:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.chip{font-size:11px;font-family:monospace;background:#1A1A24;border:1px solid #2A2A3A;color:#9090B0;padding:3px 10px;border-radius:5px;cursor:pointer}
+.chip:hover{border-color:#7B6EF6;color:#7B6EF6}
+.chip.p{color:#4ECDC4;border-color:rgba(78,205,196,.3)}
+.chip.w{color:#F39C12;border-color:rgba(243,156,18,.2)}
+.toggle{display:flex;gap:6px;margin-bottom:14px}
+.tbtn{font-size:11px;font-family:monospace;padding:5px 14px;border-radius:6px;border:1px solid #2A2A3A;background:#1A1A24;color:#5A5A7A;cursor:pointer}
+.tbtn.active{background:#7B6EF6;color:white;border-color:#7B6EF6}
+.full{grid-column:1/-1}
+@media(max-width:560px){.grid{grid-template-columns:1fr}.full{grid-column:1}}
+</style>
+</head>
+<body>
+<h1>Hansel Research Tools</h1>
+<p>AI POWERED · PUBLIC & PRIVATE · PORTFOLIO CONTEXT LOADED · RUNNING LOCALLY</p>
+
+<div class="toggle">
+  <button class="tbtn active" id="t-public" onclick="setType('public')">Public company</button>
+  <button class="tbtn" id="t-private" onclick="setType('private')">Private company</button>
+</div>
+
+<div class="row">
+  <input type="text" id="ticker" placeholder="e.g. NVDA or SpaceX" onkeydown="if(event.key==='Enter')run()">
+  <select id="depth">
+    <option value="full">Full analysis</option>
+    <option value="quick">Quick snapshot</option>
+    <option value="deep">Deep dive</option>
+  </select>
+  <select id="interest">
+    <option value="new position">New position</option>
+    <option value="already own">Already own</option>
+    <option value="watchlist">Watchlist</option>
+    <option value="IPO watch">IPO watch</option>
+  </select>
+  <button id="run-btn" onclick="run()">Run Brief →</button>
+</div>
+
+<div class="chips">
+  <span style="font-size:10px;font-family:monospace;color:#5A5A7A">Portfolio:</span>
+  <span class="chip p" onclick="setT('AAPL','public')">AAPL</span>
+  <span class="chip p" onclick="setT('MSFT','public')">MSFT</span>
+  <span class="chip p" onclick="setT('NVDA','public')">NVDA</span>
+  <span class="chip p" onclick="setT('VOO','public')">VOO</span>
+  <span class="chip p" onclick="setT('VTI','public')">VTI</span>
+  <span style="font-size:10px;font-family:monospace;color:#5A5A7A;margin-left:4px">Watch:</span>
+  <span class="chip w" onclick="setT('XAR','public')">XAR</span>
+  <span class="chip w" onclick="setT('ITA','public')">ITA</span>
+  <span class="chip w" onclick="setT('IAU','public')">IAU</span>
+  <span style="font-size:10px;font-family:monospace;color:#5A5A7A;margin-left:4px">Private:</span>
+  <span class="chip w" onclick="setT('SpaceX','private')">SpaceX</span>
+  <span class="chip w" onclick="setT('Stripe','private')">Stripe</span>
+  <span class="chip w" onclick="setT('OpenAI','private')">OpenAI</span>
+</div>
+
+<div class="result" id="result">
+  <div class="loading" style="color:#3A3A5A;justify-content:center;align-items:center;height:150px;display:flex">
+    Enter any ticker or company name above and hit Run Brief
+  </div>
+</div>
+
+<script>
+let currentType='public';
+function setType(t){
+  currentType=t;
+  document.getElementById('t-public').classList.toggle('active',t==='public');
+  document.getElementById('t-private').classList.toggle('active',t==='private');
+  document.getElementById('ticker').placeholder=t==='private'?'e.g. SpaceX':'e.g. NVDA';
+}
+function setT(t,type){setType(type);document.getElementById('ticker').value=t}
+
+function extractJSON(text){
+  try{return JSON.parse(text.trim())}catch(e){}
+  const s=text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  try{return JSON.parse(s)}catch(e){}
+  const m=text.match(/\{[\s\S]*\}/);
+  if(m){try{return JSON.parse(m[0])}catch(e){}}
+  return null;
+}
+
+const rc={
+  "Strong":"pos","Good":"pos","Attractive":"pos","Positive":"pos","Strong fit":"pos","Good entry":"pos","Dominant":"pos","High":"pos",
+  "Mixed":"amb","Fair":"amb","Neutral":"amb","Moderate fit":"amb","Wait":"amb","Competitive":"amb","Moderate":"amb","Medium":"amb",
+  "Weak":"neg","Stretched":"neg","Expensive":"neg","Negative":"neg","Weak fit":"neg","Duplicate":"neg","Not yet":"neg","Low":"neg","None":"neg"
+};
+
+async function run(){
+  const company=document.getElementById('ticker').value.trim();
+  if(!company){document.getElementById('ticker').focus();return}
+  const depth=document.getElementById('depth').value;
+  const interest=document.getElementById('interest').value;
+  const isPrivate=currentType==='private';
+
+  document.getElementById('run-btn').disabled=true;
+  document.getElementById('result').innerHTML='<div class="loading"><div class="spinner"></div>Analyzing '+company+' with live data...</div>';
+
+  const sys='You are a world class equity analyst. Respond with valid JSON only. No markdown, no preamble.';
+
+  let prompt;
+  if(isPrivate){
+    prompt=`Research private company: ${company}. Depth: ${depth}. Context: ${interest}. My portfolio: AAPL, MSFT, NVDA, VOO, QQQM, VTI. Long term buy and hold investor late 20s at Morgan Stanley.
+
+Return JSON only:
+{"ticker":"${company}","company":"full name","sector":"sector","last_valuation":"last known valuation","last_funding":"last funding round","verdict":"STRONG INTEREST or WATCH or MONITOR or NOT RELEVANT","verdict_reason":"one sentence","business":"2-3 sentences","moat":"2-3 sentences","risks":"2-3 sentences","public_exposure":"how to get exposure through public stocks in 2-3 sentences","ipo_outlook":"2-3 sentences","portfolio_fit":"2 sentences","ratings":{"Business quality":"Strong or Good or Mixed or Weak","Market position":"Dominant or Strong or Competitive or Unclear","IPO likelihood 2yr":"High or Moderate or Low or Unknown","Public market relevance":"High or Moderate or Low or None","Watch priority":"High or Medium or Low"},"one_thing":"single most important thing to know"}`;
+  } else {
+    prompt=`Research public stock or ETF: ${company}. Depth: ${depth}. Context: ${interest}. My portfolio: Brokerage (AAPL,MSFT,NVDA,VOO) | Roth IRA (QQQM,VTI,watching XAR,ITA,IAU) | 401k 75% S&P 25% EM | Bitcoin $25/week. Long term buy and hold late 20s building to $100k.
+
+Return JSON only:
+{"ticker":"symbol","company":"full name","sector":"sector","verdict":"BUY or WATCH or HOLD or AVOID","verdict_reason":"one sentence","business":"2-3 sentences","moat":"2-3 sentences","risks":"2-3 sentences","valuation":"2-3 sentences","portfolio_fit":"2-3 sentences","ratings":{"Business quality":"Strong or Good or Mixed or Weak","Valuation":"Attractive or Fair or Stretched or Expensive","Macro tailwinds":"Positive or Neutral or Negative","Portfolio fit":"Strong fit or Moderate fit or Weak fit or Duplicate","Timing":"Good entry or Wait or Not yet"},"one_thing":"single most important thing to know"}`;
+  }
+
+  try{
+    const resp=await fetch('/api/research',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:prompt}],system:sys})
+    });
+    const data=await resp.json();
+    let raw='';
+    if(data.content&&Array.isArray(data.content)){
+      for(const b of data.content){if(b.type==='text')raw+=b.text}
+    }
+    const r=extractJSON(raw);
+    if(r){render(r,company,isPrivate)}
+    else{document.getElementById('result').innerHTML='<div class="loading">Could not parse response. Try again.</div>'}
+  }catch(e){
+    document.getElementById('result').innerHTML='<div class="loading">Error: '+e.message+'</div>';
+  }
+  document.getElementById('run-btn').disabled=false;
+}
+
+function render(r,company,isPrivate){
+  const vc={BUY:'buy',WATCH:'watch',HOLD:'hold',AVOID:'avoid','STRONG INTEREST':'buy','MONITOR':'watch','NOT RELEVANT':'hold'};
+  const vc2=vc[r.verdict]||'hold';
+  let ratingsHTML='';
+  if(r.ratings){for(const[k,v]of Object.entries(r.ratings)){ratingsHTML+=`<div class="rating-row"><span style="color:#5A5A7A">${k}</span><span class="${rc[v]||'neu'}">${v}</span></div>`;}}
+
+  let sections='';
+  if(isPrivate){
+    sections=`
+      <div class="section"><div class="section-title">Business model</div><div class="section-body">${r.business||'—'}</div></div>
+      <div class="section"><div class="section-title">Competitive moat</div><div class="section-body">${r.moat||'—'}</div></div>
+      <div class="section"><div class="section-title">Key risks</div><div class="section-body">${r.risks||'—'}</div></div>
+      <div class="section"><div class="section-title">IPO outlook</div><div class="section-body">${r.ipo_outlook||'—'}</div></div>
+      <div class="section full"><div class="section-title">How to get public market exposure</div><div class="section-body">${r.public_exposure||'—'}</div></div>
+      <div class="section full"><div class="section-title">Connection to your portfolio</div><div class="section-body">${r.portfolio_fit||'—'}</div></div>
+      <div class="section"><div class="section-title">Ratings</div><div class="section-body">${ratingsHTML}</div></div>
+      <div class="section"><div class="section-title">The one thing</div><div class="section-body" style="color:#F0F0FF;font-size:14px">${r.one_thing||'—'}</div></div>`;
+  } else {
+    sections=`
+      <div class="section"><div class="section-title">Business model</div><div class="section-body">${r.business||'—'}</div></div>
+      <div class="section"><div class="section-title">Competitive moat</div><div class="section-body">${r.moat||'—'}</div></div>
+      <div class="section"><div class="section-title">Key risks</div><div class="section-body">${r.risks||'—'}</div></div>
+      <div class="section"><div class="section-title">Valuation</div><div class="section-body">${r.valuation||'—'}</div></div>
+      <div class="section full"><div class="section-title">Portfolio fit — your situation</div><div class="section-body">${r.portfolio_fit||'—'}</div></div>
+      <div class="section"><div class="section-title">Ratings</div><div class="section-body">${ratingsHTML}</div></div>
+      <div class="section"><div class="section-title">The one thing</div><div class="section-body" style="color:#F0F0FF;font-size:14px">${r.one_thing||'—'}</div></div>`;
+  }
+
+  const privateBadge=isPrivate?'<span style="font-size:10px;font-family:monospace;background:rgba(243,156,18,.1);border:1px solid rgba(243,156,18,.3);color:#F39C12;padding:2px 8px;border-radius:4px;margin-left:8px">PRIVATE</span>':'';
+  const valBadge=isPrivate&&r.last_valuation?`<span style="font-size:11px;font-family:monospace;color:#5A5A7A;margin-left:8px">${r.last_valuation}</span>`:'';
+
+  document.getElementById('result').innerHTML=`
+    <div style="display:flex;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2A2A3A;flex-wrap:wrap;gap:8px">
+      <span style="font-size:26px;font-weight:700">${r.ticker||company.toUpperCase()}</span>
+      ${privateBadge}
+      <span style="font-size:12px;font-family:monospace;color:#5A5A7A">${r.company||''}</span>
+      <span style="font-size:12px;font-family:monospace;color:#5A5A7A">${r.sector||''}</span>
+      ${valBadge}
+    </div>
+    <div class="verdict ${vc2}">${r.verdict} — ${r.verdict_reason}</div>
+    <div class="grid">${sections}</div>`;
+}
+</script>
+</body>
+</html>
